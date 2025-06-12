@@ -19,18 +19,6 @@ const CHROME_PROFILE_DIR = {
   linux: path.join(os.homedir(), process.env.CHROME_PROFILE_LINUX),
 };
 
-// const CHROME_PROFILE_DIR = {
-//   darwin: path.join(
-//     os.homedir(),
-//     "Library/Application Support/Google/Chrome/Profile 4"
-//   ),
-//   win32: path.join(
-//     os.homedir(),
-//     "AppData/Local/Google/Chrome/User Data/Profile 1"
-//   ),
-//   linux: path.join(os.homedir(), ".config/google-chrome/Profile 1"),
-// };
-
 const joinedMeetings = new Set();
 const endedMeetings = new Set();
 

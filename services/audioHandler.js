@@ -9,7 +9,8 @@ const clientSTT = new speech.SpeechClient();
 const soxPath = process.env.SOX_PATH || "sox";
 
 const DEFAULT_MIC_DEVICE =
-  process.platform === "darwin" ? "BlackHole 2ch" : "default";
+  process.env.DEFAULT_MIC_DEVICE ||
+  (process.platform === "darwin" ? "BlackHole 2ch" : "default");
 
 let isTranscribing = false;
 const transcriptionQueue = [];
@@ -86,10 +87,6 @@ async function transcribeFromMicStream(
 
     // Optional silence filter (comment out if issues continue)
     const silenceFilter = ["silence", "1", "0.1", "0.1%", "1", "3.0", "0.1%"];
-
-    // const sox = spawn("sox", [...soxArgs, ...silenceFilter], {
-    //   stdio: ["ignore", "pipe", "inherit"],
-    // });
 
     const sox = spawn(soxPath, [...soxArgs, ...silenceFilter], {
       stdio: ["ignore", "pipe", "inherit"],
