@@ -1,0 +1,18 @@
+[
+  {
+    "role": "user",
+    "content": "what is the capital of India"
+  },
+  {
+    "role": "agent",
+    "content": "The capital of India is New Delhi.\n"
+  },
+  {
+    "role": "user",
+    "content": "what is the capital of Austria"
+  },
+  {
+    "role": "agent",
+    "content": "The capital of Austria is Vienna.\n"
+  }
+]

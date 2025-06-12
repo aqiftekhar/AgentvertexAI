@@ -1,0 +1,18 @@
+[
+  {
+    "role": "user",
+    "content": "what is a capital of Pakistan"
+  },
+  {
+    "role": "agent",
+    "content": "The capital of Pakistan is Islamabad.\n"
+  },
+  {
+    "role": "user",
+    "content": "what is the capital of India"
+  },
+  {
+    "role": "agent",
+    "content": "The capital of India is New Delhi.\n"
+  }
+]

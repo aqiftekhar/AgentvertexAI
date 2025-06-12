@@ -1,0 +1,36 @@
+{
+  "name": "ai-meeting-agent",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/aqiftekhar/AgentvertexAI.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/aqiftekhar/AgentvertexAI/issues"
+  },
+  "homepage": "https://github.com/aqiftekhar/AgentvertexAI#readme",
+  "description": "",
+  "dependencies": {
+    "@google-cloud/speech": "^7.0.1",
+    "@google-cloud/storage": "^7.16.0",
+    "@google-cloud/text-to-speech": "^6.0.1",
+    "@google-cloud/vertexai": "^1.10.0",
+    "csv-parser": "^3.2.0",
+    "dotenv": "^16.5.0",
+    "fs": "^0.0.1-security",
+    "node-record-lpcm16": "^1.0.1",
+    "node-schedule": "^2.1.1",
+    "os": "^0.1.2",
+    "play-sound": "^1.1.6",
+    "puppeteer": "^24.10.0",
+    "puppeteer-extra": "^3.3.6",
+    "puppeteer-extra-plugin-stealth": "^2.11.2"
+  }
+}
