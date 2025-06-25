@@ -178,7 +178,8 @@ async function joinGoogleMeet(
     }, label);
 
     if (button) {
-      await button.click();
+      //await button.click();
+      await page.evaluate((btn) => btn.click(), button);
       console.log(`✅ Clicked button with label: "${label}"`);
       clicked = true;
       break;
@@ -591,7 +592,7 @@ async function startAgent() {
       if (now > endDateTime) continue;
 
       if (meetingActive) {
-        console.log("Meeting is currently active. Skipping scheduling.");
+        //console.log("Meeting is currently active. Skipping scheduling.");
         return;
       }
 
