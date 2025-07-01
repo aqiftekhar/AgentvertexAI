@@ -1,7 +1,16 @@
+const fs = require("fs");
+const path = require("path");
 const { PassThrough } = require("stream");
 const { spawn } = require("child_process");
+const fetch = require("node-fetch");
 const textToSpeech = require("@google-cloud/text-to-speech");
 const speech = require("@google-cloud/speech");
+const {
+  connectOBS,
+  playAvatarVideo,
+  hideAvatarVideo,
+} = require("./obsHandler");
+
 require("dotenv").config();
 
 const clientTTS = new textToSpeech.TextToSpeechClient();
@@ -37,6 +46,8 @@ function releaseTranscriptionLock() {
   }
 }
 
+connectOBS();
+
 async function speak(text) {
   try {
     const request = {
@@ -46,22 +57,75 @@ async function speak(text) {
     };
 
     const [response] = await clientTTS.synthesizeSpeech(request);
+    const outputPath = path.resolve(__dirname, "../output.wav");
 
-    const play = spawn("play", ["-t", "wav", "-"], {
-      stdio: ["pipe", "ignore", "inherit"],
-    });
+    fs.writeFileSync(outputPath, response.audioContent);
+    console.log("🔊 TTS audio saved:", outputPath);
 
-    play.stdin.write(response.audioContent);
-    play.stdin.end();
+    await generateAvatarFromAudio(outputPath);
 
-    return new Promise((resolve) => {
-      play.on("close", resolve);
-    });
+    await playAvatarVideo(); // Show & play in OBS
+    await playAudio(outputPath);
+    //setTimeout(() => hideAvatarVideo(), 4000); // Hide after 4 sec
   } catch (err) {
-    console.error("TTS Error:", err);
+    console.error("❌ TTS Error:", err);
     throw err;
   }
 }
+
+async function playAudio(filePath) {
+  return new Promise((resolve, reject) => {
+    const play = spawn("play", [filePath], {
+      stdio: ["ignore", "ignore", "inherit"],
+    });
+
+    play.on("close", resolve);
+    play.on("error", reject);
+  });
+}
+
+async function generateAvatarFromAudio(audioPath) {
+  return new Promise((resolve, reject) => {
+    const subprocess = spawn(
+      "python",
+      [
+        "Wav2Lip/inference.py",
+        "--checkpoint_path",
+        "Wav2Lip/checkpoints/wav2lip.pth",
+        "--face",
+        path.resolve(__dirname, "../avatar.png"),
+        "--audio",
+        audioPath,
+        "--outfile",
+        path.resolve(__dirname, "../output.mp4"),
+      ],
+      {
+        cwd: path.resolve(__dirname, ".."),
+        env: {
+          ...process.env,
+          PATH: `/Users/aqdasiftekhar/miniconda3/envs/wav2lip/bin:${process.env.PATH}`,
+        },
+      }
+    );
+
+    subprocess.stdout.on("data", (data) =>
+      console.log("[Wav2Lip]", data.toString())
+    );
+    // subprocess.stderr.on("data", (data) =>
+    //   //console.error("[Wav2Lip ERROR]", data.toString())
+    // );
+
+    subprocess.on("exit", (code) => {
+      if (code === 0) {
+        console.log("🎥 Wav2Lip avatar video generated");
+        resolve();
+      } else {
+        reject(new Error(`Wav2Lip exited with code ${code}`));
+      }
+    });
+  });
+}
+
 async function transcribeFromMicStream(
   micDevice = DEFAULT_MIC_DEVICE,
   signal = null
@@ -85,25 +149,15 @@ async function transcribeFromMicStream(
       "-",
     ];
 
-    // Optional silence filter (comment out if issues continue)
     const silenceFilter = ["silence", "1", "0.1", "0.1%", "1", "3.0", "0.1%"];
-
     const sox = spawn(soxPath, [...soxArgs, ...silenceFilter], {
       stdio: ["ignore", "pipe", "inherit"],
     });
 
     sox.on("error", (err) => {
-      console.error("SoX process error:", err);
+      console.error("SoX error:", err);
       releaseTranscriptionLock();
       reject(err);
-    });
-
-    sox.on("exit", (code, sig) => {
-      if (code !== 0) {
-        console.warn(
-          `⚠️ SoX exited unexpectedly with code ${code}, signal ${sig}`
-        );
-      }
     });
 
     const audioStream = new PassThrough();
@@ -116,11 +170,11 @@ async function transcribeFromMicStream(
           sampleRateHertz: 16000,
           languageCode: "en-US",
           interimResults: false,
-          singleUtterance: false, // ⬅️ prevents early cutoff
+          singleUtterance: false,
         },
       })
       .on("error", (err) => {
-        console.error("STT streaming error:", err);
+        console.error("STT error:", err);
         cleanup();
         reject(err);
       })
@@ -142,19 +196,17 @@ async function transcribeFromMicStream(
       releaseTranscriptionLock();
     };
 
-    // 🛑 Abort controller
     if (signal) {
       signal.addEventListener("abort", () => {
-        console.warn("🛑 Transcription aborted by signal");
+        console.warn("🛑 Transcription aborted");
         cleanup();
         reject(new Error("Transcription aborted"));
       });
     }
 
-    // ⏱ Timeout fallback
     const timeout = setTimeout(() => {
       if (signal?.aborted) return;
-      console.warn("⚠️ Transcription timeout - no speech detected");
+      console.warn("⚠️ Speech timeout");
       cleanup();
       reject(new Error("Speech timeout"));
     }, 50000);
@@ -163,4 +215,7 @@ async function transcribeFromMicStream(
   });
 }
 
-module.exports = { speak, transcribeFromMicStream };
+module.exports = {
+  speak,
+  transcribeFromMicStream,
+};

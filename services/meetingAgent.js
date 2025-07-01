@@ -132,35 +132,7 @@ async function joinGoogleMeet(
   await page.goto(link, { waitUntil: "networkidle2", timeout: 60000 });
   await new Promise((resolve) => setTimeout(resolve, 10000));
 
-  try {
-    const cameraBtnSelector = 'div[aria-label="Turn off camera"]';
-    await page.waitForSelector(cameraBtnSelector, {
-      timeout: 10000,
-      visible: true,
-    });
-    const cameraBtn = await page.$(cameraBtnSelector);
-
-    if (cameraBtn) {
-      const isCameraOn = await page.evaluate(
-        (el) => el.getAttribute("data-is-muted") === "false",
-        cameraBtn
-      );
-      if (isCameraOn) {
-        console.log("📷 Camera is ON. Turning it OFF...");
-        await page.evaluate((el) => el.click(), cameraBtn);
-      } else {
-        console.log("✅ Camera is already OFF.");
-      }
-    } else {
-      console.warn("⚠️ Camera button not found.");
-    }
-  } catch (err) {
-    console.warn(
-      "⚠️ Could not detect or interact with the camera button:",
-      err.message
-    );
-  }
-
+  
   const buttonLabels = [
     "Join now",
     "Ask to join",
