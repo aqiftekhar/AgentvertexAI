@@ -3,4 +3,5 @@ node_modules
 ./node_modules
 ./Wav2Lip
 Wav2Lip
+*miniconda.sh
 vscode
